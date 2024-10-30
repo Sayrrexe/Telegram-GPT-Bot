@@ -114,7 +114,6 @@ async def generate(message: types.Message):
     
     if user_id not in user_data:
         user_data[user_id] = UserHistory()
-    user_data[user_id].add_query(f'Я: {message.text}')
     
     history = user_data[user_id].get_history()
     history_text = "\n".join(history) if history else ""
@@ -129,4 +128,5 @@ async def generate(message: types.Message):
         logger.error(f"Error sending message to user {user_id}: {error}")
         answer = await ask_gpt(f'! Внимание прошлый ответ не был отправлен из-за ошибки {error} Постарайся перефразировать ответ! {TEXT_RULERS}начало памяти прошлых сообщений {history_text}!конец памяти!Я:{message.text}')
         await message.answer(answer, parse_mode='MARKDOWN')
+    user_data[user_id].add_query(f'Я: {message.text}')
     user_data[user_id].add_query(f'Ты: {answer}')
