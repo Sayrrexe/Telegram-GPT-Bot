@@ -34,7 +34,12 @@ async def generate_image_gpt(response):
             model="gpt-4o",
             messages=[{"role": "user", "content": response}],
         )
-        print(answer.choices[0].message.content)
+        if len(answer.choices[0].message.content) > 200:
+            answer = await client.chat.completions.async_create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": response}],
+        )
+        print(f'Промт - {answer.choices[0].message.content}')
         response = answer.choices[0].message.content
     except Exception as err:
         print(f'Ошибка при получении ответа от GPT: {err}')
@@ -56,5 +61,4 @@ async def generate_image_gpt(response):
             except Exception as err:
                 print(f'!!!\nОшибка: \nМодель: {model}\nОшибка: {err}!!!')
 
-    print(f'Сгенерированные пути к изображениям: {img_path}')
     return img_path
