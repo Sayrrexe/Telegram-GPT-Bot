@@ -1,5 +1,5 @@
 from g4f.client import Client
-from sentence_transformers import SentenceTransformer, util
+import difflib
 from config import IMAGE_MODEL_LIST, TEXT_MODEL_LIST, negative_responses
 from app.images import download_image_from_url
 
@@ -8,27 +8,23 @@ class InvalidAnswerError(Exception):
         super().__init__(message)
         print(message)  
 
-
-similarity_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
 def check_similarity(prompt, response, threshold=0.7):
-    embeddings = similarity_model.encode([prompt, response])
-    similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
-    return similarity >= threshold
+    similarity_ratio = difflib.SequenceMatcher(None, prompt, response).ratio()
+    print('СХОЖЕСТЬ ТЕКСТОВ -', similarity_ratio)
+    return similarity_ratio >= threshold
 
 async def ask_gpt(response):
     client = Client()
     
     for model in TEXT_MODEL_LIST:
         try:
-            # Первый запрос
             answer = await client.chat.completions.async_create(
                 model=model,
                 messages=[{"role": "user", "content": response}],
             )
-            answer_content = answer.choices[0].message.content # Извлекаем текст ответа
+            answer_content = answer.choices[0].message.content
             
-            # Второй запрос для проверки
+            
             validation_response = await client.chat.completions.async_create(
                 model=model,
                 messages=[{
@@ -38,9 +34,9 @@ async def ask_gpt(response):
                                 'просто снова дай такой же ответ, если нет, напиши сначала.')
                 }],
             )
-            validation_content = validation_response.choices[0].message.content  # Извлекаем проверочный ответ
-            print(validation_content)
-            # Семантическое сравнение
+            validation_content = validation_response.choices[0].message.content
+            
+            
             if not check_similarity(answer_content, validation_content):
                 raise InvalidAnswerError("Ответ нейросети недостаточно похож на проверочный ответ.")
             
@@ -56,27 +52,23 @@ async def generate_image_gpt(response):
     img_path = []
 
     try:
-        # Первый запрос для генерации текста-промта для изображения
         answer = await client.chat.completions.async_create(
             model="gpt-4o",
             messages=[{"role": "user", "content": response}],
         )
-        first_answer_content = answer.choices[0].message.content
         second_answer = await client.chat.completions.async_create(
             model="gpt-4o",
             messages=[{"role": "user", "content": response}],
         )
         second_answer_content = second_answer.choices[0].message.content
-        # Проверка: семантическое сходство и ключевые слова
-        if not check_similarity(second_answer_content, first_answer_content):
-            print("Ответ GPT не соответствует запросу, требуется повторный запрос.")
+        first_answer_content = answer.choices[0].message.content
+        if not check_similarity(second_answer_content, first_answer_content, threshold=0.5):
             answer = await client.chat.completions.async_create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": response}],
             )
             answer_content = answer.choices[0].message.content
         
-        # Проверка наличия ключевых слов
         if any(neg_response in answer_content for neg_response in negative_responses):
             raise InvalidAnswerError("Ответ нейросети содержит негативный результат")  
 
@@ -85,9 +77,8 @@ async def generate_image_gpt(response):
 
     except Exception as err:
         print(f'Ошибка при получении ответа от GPT: {err}')
-        return img_path  # Возвращаем пустой список, если произошла ошибка
+        return img_path  
     
-    # Запуск генерации изображения
     for i in range(2):
         for model in IMAGE_MODEL_LIST:
             try:
@@ -102,6 +93,6 @@ async def generate_image_gpt(response):
                 else:
                     print(f'Нет данных для модели: {model}')
             except Exception as err:
-                print(f'!!!\nОшибка: \nМодель: {model}\nОшибка: {err}!!!')
+                print(f'!!!\nОшибка: \nМодель: {model}\nОшибка: {err}\n!!!')
 
     return img_path
