@@ -49,7 +49,7 @@ async def send_history(message: types.Message):
         history = user_data[user_id].get_history()
         if history:
             history_text = "\n".join(history)
-            await message.reply(f"Твоя история:\n{history_text}")
+            await message.reply(f"Твоя история:\n{history_text}", parse_mode="MARKDOWN")
         else:
             await message.reply("У тебя ещё нет истории!")
     else:
@@ -129,11 +129,12 @@ async def generate(message: types.Message):
     else:
         answer = await ask_gpt(f'{TEXT_RULERS} Память:{history_text}\nЗапрос: {message.text} ')
         print(f"Generated response to user {user_id}: {answer}")
-    
+        answer = answer.replace("_", "\_").replace("*", "\*").replace("[", "\[").replace("]", "\]").replace("(", "\(").replace(")", "\)").replace("~", "\~").replace("`", "\`")
     try:
         if answer == None:
-            raise ValidationError
-        await message.answer(answer, parse_mode='MARKDOWN')
+            await message.answer('При генерации произошла ошибка, попробуйте ещё 1 раз!')
+        else:
+            await message.answer(answer, parse_mode='MARKDOWN')
     except Exception as error:
         print(f"Error sending message to user {user_id}: {error}")
         answer = await ask_gpt(f'! Внимание прошлый ответ не был отправлен из-за ошибки {error} Постарайся перефразировать ответ! {TEXT_RULERS} память:{history_text}. запрос:{message.text}')
