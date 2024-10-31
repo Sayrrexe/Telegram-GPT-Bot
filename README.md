@@ -28,21 +28,14 @@ TOKEN=ваш_токен
 ```
 ### Ручная установка
 
-1. Убедитесь, что у вас установлен `python3-venv` и `python3-pip`. Если нет, установите их:
-
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y python3-venv python3-pip
-   ```
-
-2. Создайте виртуальное окружение и активируйте его:
+1. Создайте виртуальное окружение и активируйте его:
 
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
    ```
 
-3. Установите зависимости из файла `requirements.txt`:
+2. Установите зависимости из файла `requirements.txt`:
 
    ```bash
    pip install -r requirements.txt
