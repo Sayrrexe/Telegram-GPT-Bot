@@ -1,8 +1,10 @@
 import logging
+import re
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.enums import ChatAction
+from pydantic import ValidationError
 
 from app.gpt import ask_gpt, generate_image_gpt
 import os
@@ -22,7 +24,7 @@ async def cmd_start(message: types.Message):
     
 
 class UserHistory:
-    def __init__(self, max_size=10):
+    def __init__(self, max_size=6):
         self.max_size = max_size
         self.history = []
 
@@ -110,23 +112,31 @@ async def start_command(message: types.Message):
 async def generate(message: types.Message):
     text = message.text
     user_id = message.from_user.id
+    if text == '/clear':
+        return
     print(f"Received text message from user {user_id}: {text}")
     
     if user_id not in user_data:
         user_data[user_id] = UserHistory()
     
+    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
+    
     history = user_data[user_id].get_history()
     history_text = "\n".join(history) if history else ""
-
-    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
-    answer = await ask_gpt(f'{TEXT_RULERS} старые сообщения:{history_text}\nВот мой запрос сейчас, постарайся дать на него ответ соблюдая правила {message.text} ')
-    print(f"Generated response to user {user_id}: {answer}")
-
+    if history_text == '':
+        answer = await ask_gpt(text)
+        print(f"Generated First response to user {user_id}: {answer}")
+    else:
+        answer = await ask_gpt(f'{TEXT_RULERS} Память:{history_text}\nЗапрос: {message.text} ')
+        print(f"Generated response to user {user_id}: {answer}")
+    
     try:
+        if answer == None:
+            raise ValidationError
         await message.answer(answer, parse_mode='MARKDOWN')
     except Exception as error:
         print(f"Error sending message to user {user_id}: {error}")
-        answer = await ask_gpt(f'! Внимание прошлый ответ не был отправлен из-за ошибки {error} Постарайся перефразировать ответ! {TEXT_RULERS}начало памяти прошлых сообщений {history_text}!конец памяти!Я:{message.text}')
+        answer = await ask_gpt(f'! Внимание прошлый ответ не был отправлен из-за ошибки {error} Постарайся перефразировать ответ! {TEXT_RULERS} память:{history_text}. запрос:{message.text}')
         await message.answer(answer, parse_mode='MARKDOWN')
-    user_data[user_id].add_query(f'Я: {message.text}')
-    user_data[user_id].add_query(f'Ты: {answer}')
+    user_data[user_id].add_query(f'Пользователь: <{message.text}>')
+    user_data[user_id].add_query(f'Ответ: <{answer}>')
