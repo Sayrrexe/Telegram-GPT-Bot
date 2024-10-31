@@ -6,7 +6,6 @@ from app.images import download_image_from_url
 class InvalidAnswerError(Exception):
     def __init__(self, message):
         super().__init__(message)
-        print(message)  
 
 def check_similarity(prompt, response, threshold=0.7):
     similarity_ratio = difflib.SequenceMatcher(None, prompt, response).ratio()
@@ -35,7 +34,6 @@ async def ask_gpt(response):
                 }],
             )
             validation_content = validation_response.choices[0].message.content
-            
             
             if not check_similarity(answer_content, validation_content):
                 raise InvalidAnswerError("Ответ нейросети недостаточно похож на проверочный ответ.")
