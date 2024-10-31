@@ -22,7 +22,6 @@ fi
 
 # Установка системных зависимостей 
 echo "Установка системных зависимостей..."
-sudo apt-get update
 sudo apt-get install -y python3-venv python3-pip
 
 # Создание и активация виртуального окружения
