@@ -129,7 +129,7 @@ async def generate(message: types.Message):
     else:
         answer = await ask_gpt(f'{TEXT_RULERS} Память:{history_text}\nЗапрос: {message.text} ')
         print(f"Generated response to user {user_id}: {answer}")
-        answer = answer.replace("_", "\_").replace("*", "\*").replace("[", "\[").replace("]", "\]").replace("(", "\(").replace(")", "\)").replace("~", "\~").replace("`", "\`")
+        answer = answer.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("]", "\\]").replace("(", "\\(").replace(")", "\\)").replace("~", "\\~").replace("`", "\\`")
     try:
         if answer == None:
             await message.answer('При генерации произошла ошибка, попробуйте ещё 1 раз!')
