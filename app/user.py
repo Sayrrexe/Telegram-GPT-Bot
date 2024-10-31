@@ -1,5 +1,5 @@
 import logging
-import re
+
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.media_group import MediaGroupBuilder
