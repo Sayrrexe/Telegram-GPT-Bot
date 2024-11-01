@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-TEXT_MODEL_LIST = ["gpt-4o","gpt-4o-mini", "meta-ai","llama-3.1-405b"]
+TEXT_MODEL_LIST = ["gpt-4o","gpt-4o-mini"]
 IMAGE_MODEL_LIST = ["sd-3","playground-v2.5","sdxl"]
 
 

@@ -64,18 +64,16 @@ async def generate_image_gpt(response):
             )
             second_answer_content = second_answer.choices[0].message.content
             first_answer_content = answer.choices[0].message.content
-            if not check_similarity(second_answer_content, first_answer_content, threshold=0.5):
-                answer = await client.chat.completions.async_create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": response}],
-                )
-                answer_content = answer.choices[0].message.content
+            if not check_similarity(second_answer_content, first_answer_content, threshold=0.6):
+                print("Ответы не прошли проверку на сходство. Повторный запрос...")
+                continue
         
-            if any(neg_response in answer_content for neg_response in negative_responses):
-                raise InvalidAnswerError("Ответ нейросети содержит негативный результат")  
+            if any(neg_response in second_answer_content for neg_response in negative_responses):
+                print("Ответы Содержат негативные результат")
+                continue
 
-            print(f'Промт- {answer_content}')
-            response = answer_content
+            print(f'Промт- {second_answer_content}')
+            response = second_answer_content
             break
 
         except Exception as err:
