@@ -64,7 +64,7 @@ async def generate_image_gpt(response):
             )
             second_answer_content = second_answer.choices[0].message.content
             first_answer_content = answer.choices[0].message.content
-            if not check_similarity(second_answer_content, first_answer_content, threshold=0.6):
+            if not check_similarity(second_answer_content, first_answer_content, threshold=0.5):
                 print("Ответы не прошли проверку на сходство. Повторный запрос...")
                 continue
         
