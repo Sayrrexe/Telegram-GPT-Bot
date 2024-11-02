@@ -11,6 +11,8 @@ IMAGE_MODEL_LIST = ["sd-3","playground-v2.5","sdxl"]
 TEXT_RULERS = '!используй всё, кроме запроса для себя и не упоминай в разговоре!отвечай мне только на русском языке, можешь ответить на английском только если я прошу.сейчас я освежу тебе память прошлых сообщений:'
 
 negative_responses = [
+    "404",
+    "object"
     # English responses
     "I'm unable to create that.",
     "I cannot generate an image for you.",

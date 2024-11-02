@@ -38,6 +38,9 @@ async def ask_gpt(response):
             
                 if not check_similarity(answer_content, validation_content):
                     raise InvalidAnswerError("Ответ нейросети недостаточно похож на проверочный ответ.")
+                
+                if any(neg_response in validation_content for neg_response in negative_responses):
+                    raise InvalidAnswerError("Ответ нейросети Содержит нежелательные слова!")
             
                 return f'{model}: {validation_content}'
 
